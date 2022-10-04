@@ -1,2 +1,2 @@
 # tabelline-matte
-Made in [Twine](https://twinery.org/) using Harlowe story format.
+Made in [Twine](https://twinery.org/){:target="_blank"} using Harlowe story format.
