@@ -130,7 +130,7 @@
 		}
 		showText( text ) {
 			function inner() {
-				document.getElementById( "text" ).innerHTML = "<div id='ans' class='d-grid gap-2 col-4 mx-auto'><div class='text-center'>" + text + "</div></div>";
+				document.getElementById( "text" ).innerHTML = "<div id='ans' class='d-grid gap-2 col-10 mx-auto'><div class='text-center'>" + text + "</div></div>";
 			}
 			return inner.bind( this, text );
 		}
@@ -138,7 +138,7 @@
 			function inner() {
 				let q = this.questions.questions[this.idx];
 				this.answers[this.idx]=-1;
-				let text = "<div id='ans' class='d-grid gap-2 col-2 mx-auto'></div>";
+				let text = "<div id='ans' class='d-grid gap-2 col-10 mx-auto'></div>";
 				document.getElementById( "text" ).innerHTML = text;
 				document.getElementById( "ans" ).innerHTML = "<div class='text-center'>" + q.op1 + " * " + q.op2 + "</div>";
 				document.getElementById( "ans" ).appendChild( this.createAnswer( q.ans1 ) );
@@ -185,7 +185,7 @@
 
 </script>
 	<div class="container m-5" id="text">
-		<div id='start' class='d-grid gap-2 col-4 mx-auto'>
+		<div id='start' class='d-grid gap-2 col-10 mx-auto'>
 			tabelline matte
 			<div class="credits">by <a target="_blank" class="initial-link" href="https://github.com/mancino84" data-raw="">mncn</a><br>Music by <a target="_blank" class="initial-link" href="https://pixabay.com/users/coma-media-24399569/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117676">Coma-Media</a> from <a target="_blank" class="initial-link" href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117676">Pixabay</a><br>v0.2.0</div>
 <!--
