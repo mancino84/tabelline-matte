@@ -1,0 +1,326 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>tabelline matte</title>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js" integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+	<style>
+		body { background-color: #000; color: #fff;
+			
+			font: 100% Georgia,serif;
+			font-size: 1.5em;
+			
+			/*font-size: 1.5em;*/
+			line-height: 1.5em;
+			
+		}
+		.btn-outline-dark {
+			--bs-btn-color: #fff;
+			--bs-btn-border-color: #fff;
+			--bs-btn-hover-color: #000;
+			--bs-btn-hover-bg: #fff;
+			--bs-btn-hover-border-color: #000;
+			--bs-btn-focus-shadow-rgb: 33,37,41;
+			--bs-btn-active-color: #fff;
+			--bs-btn-active-bg: #212529;
+			--bs-btn-active-border-color: #212529;
+			--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+			--bs-btn-disabled-color: #212529;
+			--bs-btn-disabled-bg: transparent;
+			--bs-btn-disabled-border-color: #212529;
+			--bs-gradient: none;
+			
+		}	
+		.credits		{ font-size: 50% }
+		div.credits a { color: #fff }
+	</style>
+</head>
+<body>
+
+<script>
+
+	const sound = new Howl({
+	  //src: ['https://tabelline-matte.netlify.app/media/jazzy-abstract-beat-11254.mp3'],
+	  src: ['https://cdn.pixabay.com/download/audio/2021/11/25/audio_91b32e02f9.mp3?filename=jazzy-abstract-beat-11254.mp3'],
+	  html5: false,
+	  preload: true
+	});
+
+	class BeatTimer {
+		constructor( beatDuration ) {
+			this.beatDuration = beatDuration;			
+			this.blinkDuration = Math.floor( beatDuration / 10 );
+			this.i = 0;
+			this.currentMeasure = Math.floor( this.i / 4 );
+			this.currentBeat = this.i % 4;
+		}
+		debug() {
+			console.log( this );
+		}
+		execute() {			
+			const currentMeasureEvents = this.events[ this.currentMeasure ];
+			if( currentMeasureEvents ) {
+				const currentEvent = currentMeasureEvents[ this.currentBeat ];
+				if( currentEvent ) {
+					if( currentEvent instanceof Array ) {
+						currentEvent.forEach( e => e.call() );
+					}
+					else {
+						currentEvent.call();
+					}
+				}
+			}			
+			this.elapsed = this.elapsed + this.beatDuration;
+			this.i ++;
+			this.currentMeasure = Math.floor( this.i / 4 );
+			this.currentBeat = this.i % 4;
+		}
+		start( events ) {	
+			this.events = events;		
+			this.execute();
+			this.timer = setInterval( this.execute.bind( this ), this.beatDuration );
+		}		
+	}
+	
+	
+	class TabellineMatte {
+		constructor( beatDuration ) {
+			this.beatTimer = new BeatTimer( beatDuration );
+			this.beatDuration = beatDuration;
+			this.blinkDuration = Math.floor( beatDuration / 10 );
+			this.idx = 0;
+			this.answers = [];
+					
+		}
+		init() {
+			this.questions = {};
+			( async () => {
+				const response = await fetch('/api/init-tabelline');
+				const json = await response.json();				
+				this.questions = json;
+			} ).call();	
+		}
+		start( events ) {
+			this.beatTimer.start( events );
+		}
+		blink() {
+			function inner() {
+				document.body.style.backgroundColor = "#fff";
+				setTimeout( "document.body.style.backgroundColor = '#000'", this.blinkDuration );
+			}
+			return inner.bind( this );
+		}
+		multiBlink( num ) {
+			function inner() {
+				blink();
+				const blinkInterval = Math.floor( this.beatDuration / num );
+				let blinkElapsed = blinkInterval;
+				for( let i = 0; i < num; i++ ) {
+					setTimeout( blink, Math.floor( blinkElapsed ) );
+					blinkElapsed += blinkInterval;
+				}
+			}
+			return inner.bind( this, num );
+		}
+		showText( text ) {
+			function inner() {
+				document.getElementById( "text" ).innerHTML = "<div id='ans' class='d-grid gap-2 col-4 mx-auto'><div class='text-center'>" + text + "</div></div>";
+			}
+			return inner.bind( this, text );
+		}
+		showTab() {
+			function inner() {
+				let q = this.questions.questions[this.idx];
+				this.answers[this.idx]=-1;
+				let text = "<div id='ans' class='d-grid gap-2 col-2 mx-auto'></div>";
+				document.getElementById( "text" ).innerHTML = text;
+				document.getElementById( "ans" ).innerHTML = "<div class='text-center'>" + q.op1 + " * " + q.op2 + "</div>";
+				document.getElementById( "ans" ).appendChild( this.createAnswer( q.ans1 ) );
+				document.getElementById( "ans" ).appendChild( this.createAnswer( q.ans2 ) );
+				document.getElementById( "ans" ).appendChild( this.createAnswer( q.ans3 ) );
+				this.idx++;
+			}
+			return inner.bind( this );
+		}
+		createAnswer( val ) {
+			let el = document.createElement( "button" );
+			el.onclick = this.setVal.bind( this, val, this.idx );
+			el.className = "btn btn-outline-dark";
+			el.innerHTML = val;
+			return el;			
+		}
+		setVal( val, idx ) {
+			this.answers[ idx ] = val;
+		}
+		publishResult() {
+			fetch('/api/verify-tabelline', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify( { id: this.questions.id, givenAnswers: this.answers } )
+			})
+			.then((response) => response.json())
+			.then((result) => {
+				console.log('Success:', result);	
+				if( result.score ) {
+					this.showText( "hai totalizzato<br>" + result.score + "%" ).call();
+				}
+				else {
+					this.showText(  "brutto errore: paul pele" ).call();
+				}
+			})
+			.catch((error) => {
+				console.error('Errorzz:', error);
+				this.showText( error );
+			});
+		}
+	}
+
+</script>
+	<div class="container m-5" id="text">
+		<div id='start' class='d-grid gap-2 col-4 mx-auto'>
+			tabelline matte
+			<div class="credits">by <a target="_blank" class="initial-link" href="https://github.com/mancino84" data-raw="">mncn</a><br>Music by <a target="_blank" class="initial-link" href="https://pixabay.com/users/coma-media-24399569/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117676">Coma-Media</a> from <a target="_blank" class="initial-link" href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117676">Pixabay</a><br>v0.2.0</div>
+<!--
+			<div class="credits">by mncn<br>music by</br></div>
+			-->
+			<div id="inizia">
+				caricamento
+			</div>
+		</div>
+	</div>
+	
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+
+<script>
+
+	
+	const tabMat = new TabellineMatte( 645 );
+	console.log( tabMat.beatTimer );
+	
+	const blink = tabMat.blink();
+	const multiBlink = function( num ) { return tabMat.multiBlink( num ) }
+	const showText = function( text ) { return tabMat.showText( text ) }
+	const showTab = tabMat.showTab();
+	
+	const events = {
+		//0: { 0: [ blink, showText( "aaa" ) ], 1: blink, 2: blink, 3: blink },
+		//1: { 0: [ blink, showText( "bbb" ) ], 1: blink, 2: blink, 3: blink },
+		//2: { 0: [ blink, showText( "ccc" ) ], 1: blink, 2: blink, 3: blink },
+		//3: { 0: [ blink, showText( "ddd" ) ], 1: blink, 2: blink, 3: blink },
+		0: { 	
+			0: [ blink, showText( "il quiz delle tabelline<br><div class='text-end'>1</div>" ) ], 
+			1: [ blink, showText( "il quiz delle tabelline<br><div class='text-end'>2</div>" ) ], 
+			2: [ blink, showText( "il quiz delle tabelline<br><div class='text-end'>3</div>" ) ], 
+			3: [ blink, showText( "il quiz delle tabelline<br><div class='text-end'>4</div>" ) ] },
+		1: { 	
+			0: [ blink, showText( "matte<br><div class='text-start'>5</div>" ) ], 
+			1: [ blink, showText( "matte<br><div class='text-start'>6</div>" ) ], 
+			2: [ blink, showText( "matte<br><div class='text-start'>7</div>" ) ], 
+			3: [ blink, showText( "matte<br><div class='text-start'>8</div>" ) ] },
+			
+		2: { 	
+			0: [ blink, showText( "ti far&ograve; le domande<br><div class='text-end'>9</div>" ) ], 
+			1: [ blink, showText( "ti far&ograve; le domande<br><div class='text-end'>10</div>" ) ], 
+			2: [ blink, showText( "ti far&ograve; le domande<br><div class='text-end'>11</div>" ) ], 
+			3: [ blink, showText( "ti far&ograve; le domande<br><div class='text-end'>12</div>" ) ] },
+
+		3: { 	
+			0: [ blink, showText( "e dovrai dare le risposte<br><div class='text-start'>13</div>" ) ], 
+			1: [ blink, showText( "e dovrai dare le risposte<br><div class='text-start'>14</div>" ) ], 
+			2: [ blink, showText( "giuste<br><div class='text-end'>15</div>" ) ], 
+			3: [ blink, showText( "giuste<br><div class='text-end'>16</div>" ) ] },	
+					
+		4: { 0: [ blink, showTab ] },
+		5: { 0: showTab },
+		6: { 0: [ blink, showTab ] },
+		7: { 0: showTab },
+		
+		8: { 0: [ blink, showTab ] },
+		9: { 0: [ blink, showTab ] },
+		10: { 0: [ blink, showTab ] },
+		11: { 0: [ blink, showTab ] },
+		
+		12: { 0: [ blink, showTab ], 2: blink },
+		13: { 0: [ blink, showTab ], 2: blink },
+		14: { 0: [ blink, showTab ], 2: blink },
+		15: { 0: [ blink, showTab ], 2: blink },
+		
+		16: { 0: [ blink, showTab ], 1: blink, 2: blink, 3: blink },
+		17: { 0: [ blink, showTab ], 1: blink, 2: blink, 3: blink },
+		18: { 0: [ blink, showTab ], 1: blink, 2: blink, 3: blink },
+		19: { 0: [ blink, showTab ], 1: blink, 2: blink, 3: blink },
+		
+		20: { 	
+			0: [ blink, showText( "rilassati<br><div class='text-end'>1</div>" ) ], 
+			1: showText( "rilassati<br><div class='text-end'>2</div>" ), 
+			2: showText( "rilassati<br><div class='text-end'>3</div>" ), 
+			3: showText( "rilassati<br><div class='text-end'>4</div>" ) },
+		21: { 	
+			0: [ blink, showText( "un bel respiro<br><div class='text-start'>5</div>" ) ], 
+			1: showText( "un bel respiro<br><div class='text-start'>6</div>" ), 
+			2: showText( "un bel respiro<br><div class='text-start'>7</div>" ), 
+			3: showText( "un bel respiro<br><div class='text-start'>8</div>" ) },
+			
+		22: { 	
+			0: [ blink, showText( "il peggio &egrave; passato<br><div class='text-end'>9</div>" ) ], 
+			1: showText( "il peggio &egrave; passato<br><div class='text-end'>10</div>" ), 
+			2: [ blink, showText( "il peggio &egrave; passato<br><div class='text-end'>11</div>" ) ], 
+			3: showText( "il peggio &egrave; passato<br><div class='text-end'>12</div>" ) },
+
+		23: { 	
+			0: [ blink, showText( "non ci credi?<br><div class='text-start'>13</div>" ) ], 
+			1: [ blink, showText( "non ci credi?<br><div class='text-start'>14</div>" ) ], 
+			2: [ multiBlink( 2 ), showText( "fai bene!<br><div class='text-end'>15</div>" ) ], 
+			3: [ multiBlink( 2 ), showText( "fai bene!<br><div class='text-end'>16</div>" ) ] },	
+		
+		24: { 0: [ blink, showTab ], 2: showTab },
+		25: { 0: showTab, 2: showTab },
+		26: { 0: [ blink, showTab ], 2: showTab },
+		27: { 0: [ blink, showTab ], 2: showTab },
+		
+		28: { 0: [ blink, showTab ], 2: [ blink, showTab ] },
+		29: { 0: [ blink, showTab ], 2: [ blink, showTab ] },
+		30: { 0: [ blink, showTab ], 1: blink, 2: [ blink, showTab ], 3: blink },
+		31: { 0: [ blink, showTab ], 1: blink, 2: [ multiBlink( 2 ), showTab ], 3: multiBlink( 2 ) },
+		
+		32: { 0: [ blink, showText( "fine" ), tabMat.publishResult.bind( tabMat ) ] }
+		
+	};
+	
+	sound.on( 'play', () => {
+		tabMat.init();
+		tabMat.start( events );
+	});
+	sound.on( 'load', () => {
+	
+		document.getElementById( "inizia" ).innerHTML = "";
+		document.getElementById( "inizia" ).appendChild( ( () => {
+			let el = document.createElement( "button" );
+			el.onclick = () => { sound.play(); 
+				//tabMat.start( events ) 
+				};
+			//this.setVal.bind( this, val, this.idx );
+			el.className = "btn btn-outline-dark";
+			el.innerHTML = "inizia";
+			return el;
+		}).call());
+	
+		//sound.play();
+		//tabMat.start( events );
+	});
+	
+	//tabMat.start( events );
+	
+	
+</script>
+
+</body>
+</html>
