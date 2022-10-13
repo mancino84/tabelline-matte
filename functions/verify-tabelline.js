@@ -68,7 +68,7 @@ exports.handler = async function ( event, context ) {
 		const data = response.data[0].data;
 		const result = validateAnswers( req.givenAnswers, data.answers );
 		
-		return client.query( q.Update( ref, { data: { result: result, givenAnswers: req.givenAnswers } } ) )
+		return client.query( q.Update( response.data[0].ref, { data: { result: result, givenAnswers: req.givenAnswers } } ) )
 		.then((response) => {
 			console.log('success', response)
 			return {
