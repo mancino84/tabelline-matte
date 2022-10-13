@@ -3,12 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 const faunadb = require('faunadb')
 const q = faunadb.query;
 const client = new faunadb.Client({
-	secret: process.env.FAUNA_DB_KEY,
-	
+	secret: process.env.FAUNA_DB_KEY,	
 	endpoint: 'https://db.eu.fauna.com/'
 })
 
-const repository = require( '../js/tracking-repository.js' );
+//const repository = require( '../js/tracking-repository.js' );
 
 function buildTabelline() {
 	let ops = [];
@@ -59,30 +58,31 @@ exports.handler = async function ( event, context ) {
 		result.answers.push( question.res );
 	}
 	
-	repository.insertNew( client, q, { data: JSON.parse( JSON.stringify( result ) ) },
-		() => {
-			result.answers = undefined;
-			result.clientData = undefined;			
-			return {
-				statusCode: 200,
-				headers: {
-					"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-					"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
-				},
-				body: JSON.stringify( result )
-			};
-		},
-		() => {
-			return {
-				statusCode: 500,
-				headers: {
-					"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-					"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
-				},
-				body: JSON.stringify( { error: "insert error" } )
-			};
-		}
-	);
+	return client.query( q.Create( q.Collection( "tracking" ), obj ) )
+    .then((response) => {
+		console.log( 'success', response );
+		result.answers = undefined;
+		result.clientData = undefined;
+		return {
+			statusCode: 200,
+			headers: {
+				"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+				"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+			},
+			body: JSON.stringify( result ),
+		};
+	})
+	.catch((error) => {
+		console.log('error', error)
+		return {
+			statusCode: 500,
+			headers: {
+				"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+				"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+			},
+			body: JSON.stringify( error ),
+		};
+    })
 	
 	/*
 	fetch('http://localhost:9000/crud-save', {
@@ -101,6 +101,17 @@ exports.handler = async function ( event, context ) {
 	});
 	*/
 	
+	/*
+	result.answers = undefined;
+	result.clientData = undefined;
 	
-	
+	return {
+		statusCode: 200,
+		headers: {
+			"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+			"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+		},
+		body: JSON.stringify( result ),
+	};
+	*/
 };
