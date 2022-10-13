@@ -56,11 +56,9 @@ exports.handler = async function ( event, context ) {
 		const results = shuffle( [ question.res, answer1, answer2 ] );
 		result.questions.push( { op1: ops[0], op2: ops[1], ans1: results[0], ans2: results[1], ans3: results[2] } );
 		result.answers.push( question.res );
-	}
+	}	
 	
-	console.log( result );
-	
-	return client.query( q.Create( q.Collection( "tracking" ), result ) )
+	return client.query( q.Create( q.Collection( "tracking" ), { data: result } ) )
     .then((response) => {
 		console.log( 'success', response );
 		result.answers = undefined;
