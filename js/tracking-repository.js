@@ -1,15 +1,19 @@
-module.exports.insertNew = function( client, q, obj ) {
+module.exports.insertNew = function( client, q, obj, _cback, _cbackKo ) {
 	return client.query( q.Create( q.Collection( "tracking" ), obj ) )
     .then((response) => {
-      console.log('success', response)
-      /* Success! return the response with statusCode 200 */
-      return response;
-    }).catch((error) => {
-      console.log('error', error)
-      /* Error! return the error with statusCode 400 */
-      return {
-        error: error
-      }
+		console.log('success', response)
+		/* Success! return the response with statusCode 200 */
+		//return response;
+		_cback.call();
+	}).catch((error) => {
+		console.log('error', error)
+		/* Error! return the error with statusCode 400 */
+		/*
+		return {
+			error: error
+		}
+		*/
+		_cbackKo.call();
     })
 }
 

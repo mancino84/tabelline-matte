@@ -46,6 +46,7 @@ function validateAnswers( givenAnswers, correctAnswers ) {
 
 
 exports.handler = async function ( event, context ) {	
+/*
 	console.log( "eeee", event );
 	if( event.httpMethod != "POST" ) return {
 		statusCode: 200,
@@ -57,7 +58,7 @@ exports.handler = async function ( event, context ) {
 		},
 		body: "ok"
 	};
-
+*/
 	//const req = { id: "6158f842-789e-4bea-a952-7bf061673ba9" };//JSON.parse(event.body);
 	
 	const req = JSON.parse(event.body);

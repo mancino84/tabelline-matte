@@ -32,6 +32,7 @@ function shuffle( arr ) {
 }
 
 exports.handler = async function ( event, context ) {	
+
 	const tabelline = buildTabelline();
 	const result = {
 		id: uuidv4(),
@@ -58,7 +59,30 @@ exports.handler = async function ( event, context ) {
 		result.answers.push( question.res );
 	}
 	
-	repository.insertNew( client, q, { data: JSON.parse( JSON.stringify( result ) ) } );
+	repository.insertNew( client, q, { data: JSON.parse( JSON.stringify( result ) ) },
+		() => {
+			result.answers = undefined;
+			result.clientData = undefined;			
+			return {
+				statusCode: 200,
+				headers: {
+					"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+					"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+				},
+				body: JSON.stringify( result )
+			};
+		},
+		() => {
+			return {
+				statusCode: 500,
+				headers: {
+					"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+					"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+				},
+				body: JSON.stringify( { error: "insert error" } )
+			};
+		}
+	);
 	
 	/*
 	fetch('http://localhost:9000/crud-save', {
@@ -78,15 +102,5 @@ exports.handler = async function ( event, context ) {
 	*/
 	
 	
-	result.answers = undefined;
-	result.clientData = undefined;
 	
-	return {
-		statusCode: 200,
-		headers: {
-			"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-			"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
-		},
-		body: JSON.stringify( result ),
-	};
 };
