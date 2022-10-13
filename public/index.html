@@ -39,6 +39,24 @@
 		}	
 		.credits		{ font-size: 50% }
 		div.credits a { color: #fff }
+		
+		// Small devices (landscape phones, 576px and up)
+		@media (min-width: 576px) { .container { width: 500px } }
+
+		// Medium devices (tablets, 768px and up)
+		@media (min-width: 768px) { .container { width: 700px } }
+
+		// Large devices (desktops, 992px and up)
+		@media (min-width: 992px) { .container { width: 700px } }
+
+		// X-Large devices (large desktops, 1200px and up)
+		@media (min-width: 1200px) { .container { width: 700px } }
+
+		// XX-Large devices (larger desktops, 1400px and up)
+		@media (min-width: 1400px) { .container { width: 700px } }
+		
+		.container { width: 100%; max-width: 500px }
+		
 	</style>
 </head>
 <body>
@@ -184,7 +202,7 @@
 	}
 
 </script>
-	<div class="container m-5" id="text">
+	<div class="container mt-5" id="text">
 		<div id='start' class='d-grid gap-2 col-10 mx-auto'>
 			tabelline matte
 			<div class="credits">by <a target="_blank" class="initial-link" href="https://github.com/mancino84" data-raw="">mncn</a><br>Music by <a target="_blank" class="initial-link" href="https://pixabay.com/users/coma-media-24399569/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117676">Coma-Media</a> from <a target="_blank" class="initial-link" href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117676">Pixabay</a><br>v0.2.0</div>
