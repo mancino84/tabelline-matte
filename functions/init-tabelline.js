@@ -1,13 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-//import fetch from 'node-fetch';
+
 const faunadb = require('faunadb')
 const q = faunadb.query;
 const client = new faunadb.Client({
 	secret: process.env.FAUNA_DB_KEY,	
 	endpoint: 'https://db.eu.fauna.com/'
 })
-
-//const repository = require( '../js/tracking-repository.js' );
 
 function buildTabelline() {
 	let ops = [];
@@ -84,34 +82,4 @@ exports.handler = async function ( event, context ) {
 		};
     })
 	
-	/*
-	fetch('http://localhost:9000/crud-save', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify( result )
-	})
-	.then((response) => response.json())
-	.then((result) => {
-		console.log('Success:', result);		
-	})
-	.catch((error) => {
-		console.error('Error:', error);
-	});
-	*/
-	
-	/*
-	result.answers = undefined;
-	result.clientData = undefined;
-	
-	return {
-		statusCode: 200,
-		headers: {
-			"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-			"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
-		},
-		body: JSON.stringify( result ),
-	};
-	*/
 };

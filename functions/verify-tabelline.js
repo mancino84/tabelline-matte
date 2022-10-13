@@ -1,33 +1,9 @@
-//import fetch from 'node-fetch';
-/* Import faunaDB sdk */
 const faunadb = require('faunadb')
 const q = faunadb.query;
 const client = new faunadb.Client({
 	secret: process.env.FAUNA_DB_KEY,
 	endpoint: 'https://db.eu.fauna.com/'
 })
-
-//const repository = require( '../js/tracking-repository.js' );
-
-/*
-async function getObj( id ) {	
-	return await fetch('http://localhost:9000/crud-get?id=' + id, {
-		method: 'GET',		
-	})
-	.then((response) => {
-		if( response.status > 299 ) throw { error: "invalid response code " + response.status };
-		return response.json()
-	})
-	.then((result) => {
-		console.log('Success:', result);
-		return result;
-	})
-	.catch((error) => {
-		console.error('Error:', error);
-		return { error: "crud-get?id=" + id  + " fetch error" };
-	});
-}
-*/
 
 function validateAnswers( givenAnswers, correctAnswers ) {
 	if( givenAnswers.length != correctAnswers.length ) return { error: "incorrect answers length" }
