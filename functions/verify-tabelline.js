@@ -7,7 +7,7 @@ const client = new faunadb.Client({
 	endpoint: 'https://db.eu.fauna.com/'
 })
 
-const repository = require( '../js/tracking-repository.js' );
+//const repository = require( '../js/tracking-repository.js' );
 
 /*
 async function getObj( id ) {	
@@ -29,10 +29,6 @@ async function getObj( id ) {
 }
 */
 
-function updateObj( obj, result ) {
-	
-}
-
 function validateAnswers( givenAnswers, correctAnswers ) {
 	if( givenAnswers.length != correctAnswers.length ) return { error: "incorrect answers length" }
 	let ok = 0;
@@ -46,53 +42,70 @@ function validateAnswers( givenAnswers, correctAnswers ) {
 
 
 exports.handler = async function ( event, context ) {	
-/*
-	console.log( "eeee", event );
-	if( event.httpMethod != "POST" ) return {
-		statusCode: 200,
-		headers: {
-			"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-			"Access-Control-Allow-Credentials" : true, // Required for cookies, authorization headers with HTTPS 
-			"Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-			"Access-Control-Allow-Headers": "X-PINGOTHER, Content-Type"
-		},
-		body: "ok"
-	};
-*/
-	//const req = { id: "6158f842-789e-4bea-a952-7bf061673ba9" };//JSON.parse(event.body);
-	
-	const req = JSON.parse(event.body);
-	const obj = await repository.getById( client, q, req.id );	
-	if( obj.error ) {
+
+	const req = JSON.parse( event.body );
+	const id = req.id;
+
+	return client.query( 	
+		/*
+		Map(
+		  Paginate(
+			Match(Index("tracking_find_by_id"), "6158f842-789e-4bea-a952-7bf061673ba9")
+		  ),
+		  Lambda("rec", Get(Var("rec")))
+		)
+		*/
+		q.Map( 
+			q.Paginate(
+				q.Match( q.Index( "tracking_find_by_id" ), id )
+			),
+			q.Lambda( "rec", q.Get(q.Var("rec") ) ) )
+	)
+    .then((response) => {
+		
+		console.log('success', response)
+		/* Success! return the response with statusCode 200 */
+		const data = response.data[0].data;
+		const result = validateAnswers( req.givenAnswers, data.answers );
+		
+		return client.query( q.Update( ref, { data: { result: result, givenAnswers: req.givenAnswers } } ) )
+		.then((response) => {
+			console.log('success', response)
+			return {
+				statusCode: 200,
+				headers: {
+					"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+					"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+				},
+				body: JSON.stringify( result )
+			};
+		})
+		.catch((error) => {
+			console.log('error', error)
+			/* Error! return the error with statusCode 400 */
+			return {
+				statusCode: 500,
+				headers: {
+					"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+					"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+				},
+				body: JSON.stringify( error ),
+			};	
+		})
+		
+		
+		return response;
+		
+    }).catch((error) => {
+		console.log('error', error)		
 		return {
 			statusCode: 500,
-				headers: {
+			headers: {
 				"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
 				"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
 			},
-			body: JSON.stringify( obj ),
-		};
-	}
-	const data = obj.data[0].data;
-	const result = validateAnswers( req.givenAnswers, data.answers );
-	repository.updateByRef( client, q, obj.data[0].ref, { data: { result: result, givenAnswers: req.givenAnswers } } );
-	if( result.error ) {
-		return {
-			statusCode: 500,
-				headers: {
-				"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-				"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
-			},
-			body: JSON.stringify( result ),
-		};
-	}
-	
-	return {
-		statusCode: 200,
-		headers: {
-			"Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-			"Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
-		},
-		body: JSON.stringify( result )
-	};
+			body: JSON.stringify( error ),
+		};	
+    })
+
 };
