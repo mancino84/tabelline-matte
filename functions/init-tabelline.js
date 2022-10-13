@@ -58,7 +58,7 @@ exports.handler = async function ( event, context ) {
 		result.answers.push( question.res );
 	}
 	
-	return client.query( q.Create( q.Collection( "tracking" ), obj ) )
+	return client.query( q.Create( q.Collection( "tracking" ), result ) )
     .then((response) => {
 		console.log( 'success', response );
 		result.answers = undefined;
